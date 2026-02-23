@@ -2,9 +2,8 @@ name: Auto Aggiornamento Notizie Gorla
 
 on:
   schedule:
-    # Gira ogni ora (scocca l'ora esatta)
-    - cron: '0 * * * *'
-  workflow_dispatch: # Ti permette di farlo partire anche a mano con un tasto
+    - cron: '0 * * * *' # Gira ogni ora esatta
+  workflow_dispatch: # Ti permette di farlo partire anche a mano
 
 jobs:
   build:
@@ -18,17 +17,17 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Installa librerie necessarie
+      - name: Installa librerie
         run: |
           pip install requests beautifulsoup4
 
-      - name: Esegui lo script Python
-        run: python tuo_script_notizie.py  # <--- CAMBIA QUESTO col nome del tuo file .py
+      - name: Esegui lo script
+        run: python tuo_script_notizie.py # <--- CONTROLLA CHE IL NOME SIA UGUAL AL TUO FILE .PY
 
-      - name: Salva i cambiamenti su GitHub
+      - name: Salva i cambiamenti
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add gorlanews_db.json
-          git commit -m "Aggiornamento automatico notizie" || exit 0
+          git commit -m "Aggiornamento automatico (Senza Twilio)" || exit 0
           git push
