@@ -9,6 +9,7 @@ def scrape_gorla():
     soup = BeautifulSoup(response.text, 'html.parser')
 
     news_list = []
+    # Prende gli articoli dal sito
     articles = soup.find_all('article')[:100] 
 
     for article in articles:
@@ -28,10 +29,10 @@ def scrape_gorla():
                 "img_url": img_url,
                 "url": link
             })
-        except Exception as e:
-            print(f"Errore: {e}")
+        except:
+            continue
 
-    # Salva con la chiave "news" (fondamentale per l'app!)
+    # SALVA CON LA CHIAVE "news" (fondamentale per l'app!)
     with open('gorlanews_db.json', 'w', encoding='utf-8') as f:
         json.dump({"news": news_list}, f, ensure_ascii=False, indent=4)
 
