@@ -1,0 +1,31 @@
+name: Aggiorna Notizie Gorla
+on:
+  schedule:
+    - cron: '0 * * * *' # Esegue ogni ora
+  workflow_dispatch: # Permette di avviarlo a mano per test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Installa dipendenze
+        run: pip install requests beautifulsoup4
+
+      - name: Esegui Scraper
+        run: python scraper.py
+
+      - name: Salva modifiche nel JSON
+        run: |
+          git config --global user.name "Robot Scraper"
+          git config --global user.email "bot@gorlanews.it"
+          git add gorlanews_db.json
+          git commit -m "Aggiornamento automatico notizie" || exit 0
+          git push
