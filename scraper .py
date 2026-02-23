@@ -9,7 +9,6 @@ def scrape_gorla():
     soup = BeautifulSoup(response.text, 'html.parser')
 
     news_list = []
-    # Cerca i blocchi articoli nel sito
     articles = soup.find_all('article')[:100] 
 
     for article in articles:
@@ -17,7 +16,6 @@ def scrape_gorla():
             title = article.find('h3').get_text(strip=True)
             link = article.find('a')['href']
             date = article.find('time').get_text(strip=True) if article.find('time') else ""
-            
             img_tag = article.find('img')
             img_url = img_tag['src'] if img_tag else "https://via.placeholder.com/400x200?text=Gorla+News"
             
@@ -33,7 +31,7 @@ def scrape_gorla():
         except Exception as e:
             print(f"Errore: {e}")
 
-    # Salva con la chiave "news" che serve all'app
+    # Salva con la chiave "news" (fondamentale per l'app!)
     with open('gorlanews_db.json', 'w', encoding='utf-8') as f:
         json.dump({"news": news_list}, f, ensure_ascii=False, indent=4)
 
