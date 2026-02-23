@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-import os
 
 def scrape_gorla():
     url = "https://comune.gorlaminore.va.it/vivere-gorla-minore/notizie/"
@@ -10,20 +9,18 @@ def scrape_gorla():
     soup = BeautifulSoup(response.text, 'html.parser')
 
     news_list = []
-    # Cerchiamo i blocchi delle notizie (basato sulla struttura tipica dei siti comunali)
-    articles = soup.find_all('article')[:100] # Prendiamo le ultime 100
+    # Cerca i blocchi articoli nel sito
+    articles = soup.find_all('article')[:100] 
 
     for article in articles:
         try:
             title = article.find('h3').get_text(strip=True)
             link = article.find('a')['href']
-            date = article.find('time').get_text(strip=True) if article.find('time') else "Data non disponibile"
+            date = article.find('time').get_text(strip=True) if article.find('time') else ""
             
-            # Cerchiamo l'immagine
             img_tag = article.find('img')
             img_url = img_tag['src'] if img_tag else "https://via.placeholder.com/400x200?text=Gorla+News"
             
-            # Assicuriamoci che i link siano completi
             if not link.startswith('http'): link = "https://comune.gorlaminore.va.it" + link
             if not img_url.startswith('http'): img_url = "https://comune.gorlaminore.va.it" + img_url
 
@@ -34,9 +31,9 @@ def scrape_gorla():
                 "url": link
             })
         except Exception as e:
-            print(f"Errore su un articolo: {e}")
+            print(f"Errore: {e}")
 
-    # Salviamo nel file JSON
+    # Salva con la chiave "news" che serve all'app
     with open('gorlanews_db.json', 'w', encoding='utf-8') as f:
         json.dump({"news": news_list}, f, ensure_ascii=False, indent=4)
 
