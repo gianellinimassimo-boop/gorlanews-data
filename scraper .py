@@ -36,4 +36,24 @@ h9VF5uHg6r7OjEa6PROuCSKXmg==
             "type": "service_account",
             "project_id": "gorlanews-by-max",
             "private_key": pk.strip(),
-            "client_email": "firebase-adminsdk-fbsvc@
+            "client_email": "firebase-adminsdk-fbsvc@gorlanews-by-max.iam.gserviceaccount.com",
+            "token_uri": "https://oauth2.googleapis.com/token",
+        })
+
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': 'https://gorlanews-by-max-default-rtdb.europe-west1.firebasedatabase.app/'
+            })
+
+        # PROVIAMO A SCRIVERE IN TRE MODI
+        db.reference('/test').set("FUNZIONA")
+        db.reference('risultato').set("VITTORIA")
+        db.reference('/').update({"connesso": "SI"})
+        
+        print("✅ Comandi inviati!")
+
+    except Exception as e:
+        print(f"❌ Errore: {e}")
+
+if __name__ == "__main__":
+    attiva()
