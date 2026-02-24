@@ -1,54 +1,74 @@
 import requests
 from bs4 import BeautifulSoup
-import json
+import firebase_admin
+from firebase_admin import credentials, db
 
-def scrape_gorla():
-    # URL of the news page
-    url = "https://comune.gorlaminore.va.it/vivere-gorla-minore/notizie/"
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    
+def raccogli():
     try:
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Usiamo la tua chiave che già funzionava
+        pk = """-----BEGIN PRIVATE KEY-----
+MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDarKfHsUJ2FLGq
+QWbi9X8WnpDwi489oqJ9Kj1cjdordZd7S81eqT8jr6IxkAH/HFEtRG1N+64hzoSW
+tM3RUq6lUjuFFFH2MzLlipM01hBtQkR6wOBCSxhO/Oq0doWUY/efMNIDEwUqvCDL
+kOPZIRdbX1H462Y2RBhZWj/NqbZfA4196CSwEl3b5q/+63e56wMTof/45mE9ubc7
+K3nhPEr/G/IoAPYQr5mUU6Gw5RRD59UXr8oPHhW9+4yhBERYrxymj2MsTnfJGZU7
+RkAAnGkY/++t9TKykmEvqoGWTDlpF2ta8HKwbFnAS70y+hVPx0as8gEOonfODYZx
+j494NgJfAgMBAAECggEABbU5W+5gkbx7Nrp7o7OiHEZfT31qa8LHAwVgkf3nPU3V
+z74WykBuCXxte2W1kkx8QfY7SYHRoHLyOwzVIoBKAWliwa0vcSxnnl4+TBlvrFUX
+0dcfA3FPsnV08D5NFlErBti7YqEoeAkZF2Hc0K9wcKN4UaBeC/noY3dbmv6xvUvK
+EMPJ+c0uOZTnSAwIwIrueXeB89F2lZLUutqWQYDswqXG4LzJaCd8krpKAykq1LEY
+DVj8U48iShUZdlisAKYbrZp4c6BM/e4/XPyaTlOCxVLpyvhx3QwcQSKXciM144FD
+0+EZRS3MhvYh5+Lt6w9UXHs+3IyjaW73fxZ7EkbLwQKBgQD8sJ5uMYwaVIlkyV4w
++5kQwg9qNVVbZI86+LIbaCvNzKxkRVRAvX3oexX2W0N9LM4IKGPk8FXc0iV8jFD1
+/M0kHwm79GtrsrqeHgSjTBMBqOn0Og8UvQwIFFoRxhL/2obdl9JQQZ3sEQLWEBc5
++mpucFV3fzS9Hp0yo4qbkkBfRwKBgQDdifexqr9TeiBOqJW8lKpJdGTHjGIsGmYE
+Uiv54kqYqKzj0INaOw8JG3KGscS8leLjJ5vbQvptam5fxvZlga1x42JtcHEFkWWO
+Rl1z9hxLk/L/KVaHSdTE3gfrahCELLiPYwEHwPQVk8AX60qLBfYsEZJCjrSRq7DW
+MOQbF8NAKQKBgQD7hYqNwP/mDZOdINuDAk0/4wqY+3F1QUlYt8gBg9VmSn6maGQO
+9Q9o42vfBsTMylZixGF6tsegwATUTo8f63z+oW59CjQKxaMAVHzlVonsswf9M/Vi
+/TIGsMteubybtBdeZwrPHCFnox8hmG6mJV7fgy1vfs0uGlT63NLRO+ibbQKBgQCR
+RkgHWdDdDNjiu+p1H4gLYygzMvutsCH182yjEKGaOgIl4jZAlTnm3vjbGvfIMwH1
+s6OgxOszlPeMFwy8w6zZYiLJYVK8M/xEsB/YSyuC5CIU8Sas0N2Vu4O1/HeYNTtR
+y7qBOybUf28YQFNBl0c23s7qlmoSnGP6EVWD7rE7AQKBgQC6edV4O++u1QkifE/c
+RYig+osADS1coSQjXcCO+eW89S3ryMuMN0+15HNvuqMmS8ZQXjdFwF+KNh4DYNv+
+NZIfIOmEmu2bo6DdXjF720ALBdh1ugH5gBu6g5/pBhg0skPNNCIMzDwT+G8Ne6hE
+h9VF5uHg6r7OjEa6PROuCSKXmg==
+-----END PRIVATE KEY-----"""
 
-        news_list = []
-        # Find all article tags (up to 100)
-        articles = soup.find_all('article')[:100] 
+        cred = credentials.Certificate({
+            "type": "service_account",
+            "project_id": "gorlanews-by-max",
+            "private_key": pk.strip(),
+            "client_email": "firebase-adminsdk-fbsvc@gorlanews-by-max.iam.gserviceaccount.com",
+            "token_uri": "https://oauth2.googleapis.com/token",
+        })
 
-        for article in articles:
-            try:
-                # Extract Title
-                title = article.find('h3').get_text(strip=True)
-                # Extract Link
-                link = article.find('a')['href']
-                # Extract Date if available
-                date = article.find('time').get_text(strip=True) if article.find('time') else ""
-                
-                # Extract Image URL
-                img_tag = article.find('img')
-                img_url = img_tag['src'] if img_tag else "https://via.placeholder.com/400x200?text=Gorla+News"
-                
-                # Fix relative URLs
-                if not link.startswith('http'): 
-                    link = "https://comune.gorlaminore.va.it" + link
-                if not img_url.startswith('http'): 
-                    img_url = "https://comune.gorlaminore.va.it" + img_url
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred, {'databaseURL': 'https://gorlanews-by-max-default-rtdb.europe-west1.firebasedatabase.app/'})
 
-                news_list.append({
-                    "title": title,
-                    "date": date,
-                    "img_url": img_url,
-                    "url": link
-                })
-            except:
-                continue
+        # PROVA DI SCRITTURA IMMEDIATA
+        db.reference('/connessione').set("OK")
 
-        # Save to JSON file with the key "news"
-        with open('gorlanews_db.json', 'w', encoding='utf-8') as f:
-            json.dump({"news": news_list}, f, ensure_ascii=False, indent=4)
-            
+        # SCRAPING
+        res = requests.get("https://comune.gorlaminore.va.it/home", timeout=10)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        
+        # Cerca tutti i testi cliccabili che sembrano titoli
+        notizie = []
+        for titolo in soup.find_all(['h3', 'h4', 'a'], class_=True):
+            testo = titolo.get_text(strip=True)
+            if len(testo) > 20: # Filtriamo le scritte troppo corte (menu, ecc)
+                notizie.append(testo)
+        
+        # Carica su Firebase
+        if notizie:
+            db.reference('/notizie_vere').set(notizie[:10])
+            print("Fatto!")
+        else:
+            db.reference('/errore').set("Sito non raggiungibile o cambiato")
+
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Errore: {e}")
 
 if __name__ == "__main__":
-    scrape_gorla()
+    raccogli()
