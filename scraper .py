@@ -1,11 +1,8 @@
-import requests
-from bs4 import BeautifulSoup
 import firebase_admin
 from firebase_admin import credentials, db
 
-def raccogli():
+def attiva():
     try:
-        # Usiamo la tua chiave che già funzionava
         pk = """-----BEGIN PRIVATE KEY-----
 MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDarKfHsUJ2FLGq
 QWbi9X8WnpDwi489oqJ9Kj1cjdordZd7S81eqT8jr6IxkAH/HFEtRG1N+64hzoSW
@@ -39,36 +36,4 @@ h9VF5uHg6r7OjEa6PROuCSKXmg==
             "type": "service_account",
             "project_id": "gorlanews-by-max",
             "private_key": pk.strip(),
-            "client_email": "firebase-adminsdk-fbsvc@gorlanews-by-max.iam.gserviceaccount.com",
-            "token_uri": "https://oauth2.googleapis.com/token",
-        })
-
-        if not firebase_admin._apps:
-            firebase_admin.initialize_app(cred, {'databaseURL': 'https://gorlanews-by-max-default-rtdb.europe-west1.firebasedatabase.app/'})
-
-        # PROVA DI SCRITTURA IMMEDIATA
-        db.reference('/connessione').set("OK")
-
-        # SCRAPING
-        res = requests.get("https://comune.gorlaminore.va.it/home", timeout=10)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        
-        # Cerca tutti i testi cliccabili che sembrano titoli
-        notizie = []
-        for titolo in soup.find_all(['h3', 'h4', 'a'], class_=True):
-            testo = titolo.get_text(strip=True)
-            if len(testo) > 20: # Filtriamo le scritte troppo corte (menu, ecc)
-                notizie.append(testo)
-        
-        # Carica su Firebase
-        if notizie:
-            db.reference('/notizie_vere').set(notizie[:10])
-            print("Fatto!")
-        else:
-            db.reference('/errore').set("Sito non raggiungibile o cambiato")
-
-    except Exception as e:
-        print(f"Errore: {e}")
-
-if __name__ == "__main__":
-    raccogli()
+            "client_email": "firebase-adminsdk-fbsvc@
